@@ -291,6 +291,7 @@
                     </div>
                 </div>
             </div>
+            <div id="wsMessageBox" style="margin-top:24px;max-height:180px;overflow-y:auto;background:#f4f6fb;border-radius:8px;padding:12px 16px;font-size:0.98em;color:#444;line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,0.03);display:none;"></div>
 
             <div id="progressSection" class="progress-section" style="display:none;">
                 <h3>🔄 处理进度</h3>
@@ -326,6 +327,14 @@
         let eventSource = null;
         let ws = null;
 
+        // 追加WebSocket消息
+        function appendWsMessage(msg) {
+            const box = document.getElementById('wsMessageBox');
+            box.style.display = '';
+            box.innerHTML += `<div>${msg}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
         // 初始化WebSocket连接
         function initWebSocket() {
             const wsUrl = `ws://localhost:3001`;
@@ -334,15 +343,27 @@
             ws.onopen = function() {
                 document.getElementById('wsStatus').className = 'websocket-status ws-connected';
                 document.getElementById('wsStatus').textContent = 'WebSocket: 已连接';
+                appendWsMessage('<b>WebSocket已连接</b>');
             };
 
             ws.onclose = function() {
                 document.getElementById('wsStatus').className = 'websocket-status ws-disconnected';
                 document.getElementById('wsStatus').textContent = 'WebSocket: 断开连接';
+                appendWsMessage('<b>WebSocket已断开</b>');
             };
 
             ws.onerror = function(error) {
                 console.error('WebSocket错误:', error);
+                appendWsMessage('<span style="color:#c00">WebSocket错误: ' + error.message + '</span>');
+            };
+
+            ws.onmessage = function(event) {
+                let msg = event.data;
+                try {
+                    const obj = JSON.parse(msg);
+                    msg = obj.message || JSON.stringify(obj);
+                } catch {}
+                appendWsMessage(msg);
             };
         }
 

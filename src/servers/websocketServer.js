@@ -104,6 +104,14 @@ function startWebSocketServer() {
   server.listen(wsPort, () => {
     console.log(`🔌 WebSocket服务器运行在 ws://localhost:${wsPort}`);
   });
+  // 定时推送消息给所有客户端
+  setInterval(() => {
+    broadcast({
+      type: 'heartbeat',
+      message: '服务器心跳 ' + new Date().toLocaleTimeString(),
+      timestamp: new Date().toISOString()
+    });
+  }, 10000);
 }
 
 // 获取连接状态
