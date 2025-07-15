@@ -212,31 +212,16 @@
     <div class="container">
         <div class="header">
             <h1>🧪 测试用例生成系统</h1>
-            <p>基于LangGraph的智能测试用例生成工作流</p>
         </div>
 
         <div class="content">
             <div class="upload-section">
-                <h2>📁 上传PDF文档</h2>
-                <p>请选择要处理的PDF文件，系统将自动生成测试用例</p>
-                
-                <input type="file" id="fileInput" class="file-input" accept=".pdf">
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                    选择PDF文件
-                </button>
-
-                <div id="fileInfo" class="file-info">
-                    <h3>文件信息</h3>
-                    <p id="fileName"></p>
-                    <p id="fileSize"></p>
-                </div>
-
-                <button id="startBtn" class="upload-btn" style="display: none; margin-top: 20px;">
-                    开始生成测试用例
-                </button>
+                <h2>📄 输入需求文本</h2>
+                <textarea id="textInput" rows="6" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:1em;"></textarea>
+                <button class="upload-btn" style="margin-top:15px;" onclick="runLanggraphWorkflow()">生成测试用例</button>
             </div>
 
-            <div id="progressSection" class="progress-section">
+            <div id="progressSection" class="progress-section" style="display:none;">
                 <h3>🔄 处理进度</h3>
                 <div class="progress-bar">
                     <div id="progressFill" class="progress-fill"></div>
@@ -244,25 +229,16 @@
                 <div id="status" class="status">准备开始...</div>
             </div>
 
-            <div id="outputSection" class="output-section">
+            <div id="outputSection" class="output-section" style="display:none;">
                 <h3>📊 生成结果</h3>
                 <div class="output-tabs">
                     <button class="tab active" onclick="showTab('keyPoints')">测试要点</button>
                     <button class="tab" onclick="showTab('testCases')">测试用例</button>
                     <button class="tab" onclick="showTab('testReport')">测试报告</button>
                 </div>
-
-                <div id="keyPoints" class="tab-content active">
-                    <div class="output-text" id="keyPointsText"></div>
-                </div>
-
-                <div id="testCases" class="tab-content">
-                    <div class="output-text" id="testCasesText"></div>
-                </div>
-
-                <div id="testReport" class="tab-content">
-                    <div class="output-text" id="testReportText"></div>
-                </div>
+                <div id="tab-keyPoints" class="tab-content active"><pre class="output-text" id="outputKeyPoints"></pre></div>
+                <div id="tab-testCases" class="tab-content"><pre class="output-text" id="outputTestCases"></pre></div>
+                <div id="tab-testReport" class="tab-content"><pre class="output-text" id="outputTestReport"></pre></div>
             </div>
 
             <div id="errorMessage" class="error" style="display: none;"></div>
@@ -523,6 +499,43 @@
         window.addEventListener('load', function() {
             initWebSocket();
         });
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(div => div.classList.remove('active'));
+            document.querySelector('.tab[onclick*="' + tab + '"]').classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        async function runLanggraphWorkflow() {
+            const input = document.getElementById('textInput').value.trim();
+            if (!input) {
+                alert('请输入需求文本！');
+                return;
+            }
+            document.getElementById('progressSection').style.display = '';
+            document.getElementById('status').innerText = '正在生成，请稍候...';
+            document.getElementById('progressFill').style.width = '30%';
+            document.getElementById('outputSection').style.display = 'none';
+            try {
+                const res = await fetch('/api/langgraph-workflow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('status').innerText = '生成完成！';
+                document.getElementById('outputSection').style.display = '';
+                document.getElementById('outputKeyPoints').innerText = data.data.keyPoints || '';
+                document.getElementById('outputTestCases').innerText = data.data.testCases || '';
+                document.getElementById('outputTestReport').innerText = data.data.testReport || '';
+            } catch (e) {
+                document.getElementById('status').innerText = '出错：' + e.message;
+                document.getElementById('progressFill').style.width = '0%';
+            }
+        }
     </script>
 </body>
 </html> 

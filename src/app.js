@@ -39,6 +39,9 @@ app.use(fileUpload({
 // 静态文件服务
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// 静态资源托管
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
   customCss: '.swagger-ui .topbar { display: none }',

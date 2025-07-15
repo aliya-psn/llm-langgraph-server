@@ -273,4 +273,17 @@ router.get('/history', (req, res) => {
   });
 });
 
+// 新增：LangGraph LLM流程API
+router.post('/langgraph-workflow', async (req, res) => {
+  try {
+    // 动态引入main函数，避免循环依赖
+    const { main } = require('../../test/langgraph-llm-workflow');
+    // main函数需调整为返回结果而不是直接console.log
+    const result = await main(req.body.input || undefined, true); // 传递参数和标志
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router; 

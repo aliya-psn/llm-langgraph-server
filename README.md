@@ -391,6 +391,7 @@ npm run dev
 ```
 
 **访问地址：**
+- 📚 前端页面: http://localhost:3000
 - 📖 API文档: http://localhost:3000/api-docs
 - 🔍 健康检查: http://localhost:3000/health
 - 🔌 WebSocket: ws://localhost:3001 
