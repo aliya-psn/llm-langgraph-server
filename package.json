@@ -1,0 +1,40 @@
+{
+  "name": "llm-langgraph-service",
+  "version": "1.0.0",
+  "description": "基于LangGraph的测试用例生成工作流系统",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "test:system": "node test/system-test.js",
+    "test:env": "node test/env-test.js"
+  },
+  "dependencies": {
+    "@langchain/langgraph": "^0.3.8",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.3",
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^2.7.0",
+    "openai": "^4.20.1",
+    "pdf-parse": "^1.1.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "langgraph",
+    "workflow",
+    "llm",
+    "testcase",
+    "pdf-parser"
+  ],
+  "author": "",
+  "license": "MIT"
+}

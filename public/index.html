@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试用例生成系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .progress-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            text-align: center;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .output-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .output-tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .output-text {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .websocket-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: white;
+        }
+
+        .ws-connected {
+            background: #28a745;
+        }
+
+        .ws-disconnected {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 测试用例生成系统</h1>
+            <p>基于LangGraph的智能测试用例生成工作流</p>
+        </div>
+
+        <div class="content">
+            <div class="upload-section">
+                <h2>📁 上传PDF文档</h2>
+                <p>请选择要处理的PDF文件，系统将自动生成测试用例</p>
+                
+                <input type="file" id="fileInput" class="file-input" accept=".pdf">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    选择PDF文件
+                </button>
+
+                <div id="fileInfo" class="file-info">
+                    <h3>文件信息</h3>
+                    <p id="fileName"></p>
+                    <p id="fileSize"></p>
+                </div>
+
+                <button id="startBtn" class="upload-btn" style="display: none; margin-top: 20px;">
+                    开始生成测试用例
+                </button>
+            </div>
+
+            <div id="progressSection" class="progress-section">
+                <h3>🔄 处理进度</h3>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="status" class="status">准备开始...</div>
+            </div>
+
+            <div id="outputSection" class="output-section">
+                <h3>📊 生成结果</h3>
+                <div class="output-tabs">
+                    <button class="tab active" onclick="showTab('keyPoints')">测试要点</button>
+                    <button class="tab" onclick="showTab('testCases')">测试用例</button>
+                    <button class="tab" onclick="showTab('testReport')">测试报告</button>
+                </div>
+
+                <div id="keyPoints" class="tab-content active">
+                    <div class="output-text" id="keyPointsText"></div>
+                </div>
+
+                <div id="testCases" class="tab-content">
+                    <div class="output-text" id="testCasesText"></div>
+                </div>
+
+                <div id="testReport" class="tab-content">
+                    <div class="output-text" id="testReportText"></div>
+                </div>
+            </div>
+
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            <div id="successMessage" class="success" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div id="wsStatus" class="websocket-status ws-disconnected">
+        WebSocket: 断开连接
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let eventSource = null;
+        let ws = null;
+
+        // 初始化WebSocket连接
+        function initWebSocket() {
+            const wsUrl = `ws://localhost:3001`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function() {
+                document.getElementById('wsStatus').className = 'websocket-status ws-connected';
+                document.getElementById('wsStatus').textContent = 'WebSocket: 已连接';
+            };
+
+            ws.onclose = function() {
+                document.getElementById('wsStatus').className = 'websocket-status ws-disconnected';
+                document.getElementById('wsStatus').textContent = 'WebSocket: 断开连接';
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket错误:', error);
+            };
+        }
+
+        // 文件选择处理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                showFileInfo(file);
+                document.getElementById('startBtn').style.display = 'inline-block';
+            }
+        });
+
+        // 显示文件信息
+        function showFileInfo(file) {
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+
+            fileName.textContent = `文件名: ${file.name}`;
+            fileSize.textContent = `文件大小: ${formatFileSize(file.size)}`;
+            fileInfo.style.display = 'block';
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 开始处理
+        document.getElementById('startBtn').addEventListener('click', function() {
+            if (!selectedFile) {
+                showError('请先选择文件');
+                return;
+            }
+
+            startProcessing();
+        });
+
+        // 开始处理文件
+        function startProcessing() {
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            // 显示进度区域
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('outputSection').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+
+            // 创建EventSource连接
+            const url = 'http://localhost:3000/api/workflow/start';
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                return new ReadableStream({
+                    start(controller) {
+                        function push() {
+                            reader.read().then(({done, value}) => {
+                                if (done) {
+                                    controller.close();
+                                    return;
+                                }
+                                
+                                const chunk = decoder.decode(value);
+                                const lines = chunk.split('\n');
+                                
+                                lines.forEach(line => {
+                                    if (line.startsWith('data: ')) {
+                                        const data = line.slice(6);
+                                        if (data !== '[DONE]') {
+                                            try {
+                                                const parsed = JSON.parse(data);
+                                                handleStreamData(parsed);
+                                            } catch (e) {
+                                                console.error('解析数据失败:', e);
+                                            }
+                                        }
+                                    }
+                                });
+                                
+                                push();
+                            });
+                        }
+                        
+                        push();
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('处理失败:', error);
+                showError(`处理失败: ${error.message}`);
+            });
+        }
+
+        // 处理流式数据
+        function handleStreamData(data) {
+            console.log('收到数据:', data);
+
+            switch (data.type) {
+                case 'start':
+                    updateStatus('开始处理文件...', 0);
+                    break;
+                    
+                case 'status':
+                    updateStatus(data.message, null);
+                    break;
+                    
+                case 'progress':
+                    updateStatus(data.message, data.progress);
+                    break;
+                    
+                case 'section':
+                    updateStatus(data.message, null);
+                    break;
+                    
+                case 'content':
+                    appendContent(data.content);
+                    break;
+                    
+                case 'complete':
+                    updateStatus('处理完成', 100);
+                    showSuccess('测试用例生成完成！');
+                    showOutputSection();
+                    break;
+                    
+                case 'error':
+                    showError(`处理错误: ${data.error}`);
+                    break;
+            }
+        }
+
+        // 更新状态
+        function updateStatus(message, progress) {
+            const statusEl = document.getElementById('status');
+            const progressFill = document.getElementById('progressFill');
+            
+            statusEl.innerHTML = `<span class="loading"></span> ${message}`;
+            
+            if (progress !== null) {
+                progressFill.style.width = `${progress}%`;
+            }
+        }
+
+        // 追加内容
+        function appendContent(content) {
+            // 根据当前活动标签页追加内容
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab) {
+                const tabName = activeTab.textContent.trim();
+                let targetId = '';
+                
+                switch (tabName) {
+                    case '测试要点':
+                        targetId = 'keyPointsText';
+                        break;
+                    case '测试用例':
+                        targetId = 'testCasesText';
+                        break;
+                    case '测试报告':
+                        targetId = 'testReportText';
+                        break;
+                }
+                
+                if (targetId) {
+                    const targetEl = document.getElementById(targetId);
+                    targetEl.textContent += content;
+                }
+            }
+        }
+
+        // 显示输出区域
+        function showOutputSection() {
+            document.getElementById('outputSection').style.display = 'block';
+        }
+
+        // 显示标签页
+        function showTab(tabName) {
+            // 隐藏所有标签页内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有标签页的active类
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签页内容
+            document.getElementById(tabName).classList.add('active');
+            
+            // 激活对应的标签按钮
+            event.target.classList.add('active');
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        // 显示成功信息
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+        }
+
+        // 页面加载时初始化WebSocket
+        window.addEventListener('load', function() {
+            initWebSocket();
+        });
+    </script>
+</body>
+</html> 
