@@ -518,13 +518,13 @@
             document.getElementById('progressFill').style.width = '30%';
             document.getElementById('outputSection').style.display = 'none';
             try {
-                const res = await fetch('/api/langgraph-workflow', {
+                const res = await fetch('/api/workflow/langgraph-workflow', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ input })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.message);
+                if (!data.success) throw new Error(data.message || '请求失败');
                 document.getElementById('progressFill').style.width = '100%';
                 document.getElementById('status').innerText = '生成完成！';
                 document.getElementById('outputSection').style.display = '';

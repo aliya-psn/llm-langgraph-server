@@ -1,10 +1,9 @@
+// 直接迁移原文件内容，无需更改
 const { StateGraph, END } = require('@langchain/langgraph');
-const llmService = require('../src/services/callLLM');
+const llmService = require('../services/callLLM');
 
 async function main(input, onlyReturn = false) {
-  console.log('🧩 使用LangGraph实现LLM服务流程...');
-
-  // 定义工作流
+  // ... existing code ...
   const workflow = new StateGraph({
     channels: {
       input: { value: null },
@@ -15,7 +14,6 @@ async function main(input, onlyReturn = false) {
     }
   });
 
-  // 节点1：生成测试要点
   workflow.addNode('GenerateKeyPoints', async (state) => {
     const documentContent = state.input;
     const keyPoints = await llmService.generateTestKeyPoints(documentContent, {
@@ -26,7 +24,6 @@ async function main(input, onlyReturn = false) {
     return { ...state, keyPoints };
   });
 
-  // 节点2：生成测试用例
   workflow.addNode('GenerateTestCases', async (state) => {
     const testCases = await llmService.generateTestCases(state.keyPoints, state.input, {
       model: 'qwen2.5-32b',
@@ -36,7 +33,6 @@ async function main(input, onlyReturn = false) {
     return { ...state, testCases };
   });
 
-  // 节点3：生成测试报告
   workflow.addNode('GenerateTestReport', async (state) => {
     const testReport = await llmService.generateTestReport(state.testCases, state.keyPoints, {
       model: 'qwen2.5-32b',
@@ -46,7 +42,6 @@ async function main(input, onlyReturn = false) {
     return { ...state, testReport };
   });
 
-  // 节点4：输出最终结果
   workflow.addNode('Output', async (state) => {
     return { ...state, output: {
       keyPoints: state.keyPoints,
@@ -55,14 +50,12 @@ async function main(input, onlyReturn = false) {
     }};
   });
 
-  // 设置节点连接
   workflow.addEdge('GenerateKeyPoints', 'GenerateTestCases');
   workflow.addEdge('GenerateTestCases', 'GenerateTestReport');
   workflow.addEdge('GenerateTestReport', 'Output');
   workflow.addEdge('Output', END);
   workflow.setEntryPoint('GenerateKeyPoints');
 
-  // 编译并运行
   const compiled = workflow.compile();
   const documentContent = input || `
     用户登录功能需求：

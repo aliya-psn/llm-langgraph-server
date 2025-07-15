@@ -273,11 +273,50 @@ router.get('/history', (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /api/workflow/langgraph-workflow:
+ *   post:
+ *     summary: LangGraph LLM流程一键生成
+ *     description: 输入需求文本，自动生成测试要点、测试用例和测试报告。
+ *     tags:
+ *       - 工作流
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               input:
+ *                 type: string
+ *                 description: 需求文本内容
+ *             required:
+ *               - input
+ *     responses:
+ *       200:
+ *         description: 生成结果
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/TestResult'
+ *       500:
+ *         description: 服务器错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 // 新增：LangGraph LLM流程API
 router.post('/langgraph-workflow', async (req, res) => {
   try {
     // 动态引入main函数，避免循环依赖
-    const { main } = require('../../test/langgraph-llm-workflow');
+    const { main } = require('../workflows/langgraph-llm-workflow');
     // main函数需调整为返回结果而不是直接console.log
     const result = await main(req.body.input || undefined, true); // 传递参数和标志
     res.json({ success: true, data: result });
