@@ -12,12 +12,19 @@ async function exampleUsage() {
     // 示例1: 基本文本生成
     console.log('📝 示例1: 基本文本生成');
     const content = '请介绍一下测试用例的重要性';
-    const result = await llmService.callLLM(content, {
+    await llmService.callLLM(content, {
       model: 'qwen2.5-32b',
-      temperature: 0.0
+      temperature: 0.0,
+      onChunk:(chunk) => {
+        if (chunk.type === 'chunk') {
+          process.stdout.write(chunk.content);
+        } else if (chunk.type === 'complete') {
+          console.log('\n✅ 流式输出完成');
+        } else if (chunk.type === 'error') {
+          console.error('❌ 流式输出错误:', chunk.error);
+        }
+      }
     });
-    console.log('结果:', result);
-    console.log('');
 
     // 示例2: 生成测试要点
     console.log('📋 示例2: 生成测试要点');
@@ -31,42 +38,40 @@ async function exampleUsage() {
     
     const keyPoints = await llmService.generateTestKeyPoints(documentContent, {
       model: 'qwen2.5-32b',
-      temperature: 0.0
+      temperature: 0.0,
     });
-    console.log('测试要点:', keyPoints);
-    console.log('');
+    console.log(keyPoints)
 
     // 示例3: 生成测试用例
     console.log('🧪 示例3: 生成测试用例');
     const testCases = await llmService.generateTestCases(keyPoints, documentContent, {
       model: 'qwen2.5-32b',
-      temperature: 0.0
+      temperature: 0.0,
     });
-    console.log('测试用例:', testCases);
-    console.log('');
 
     // 示例4: 生成测试报告
     console.log('📊 示例4: 生成测试报告');
     const testReport = await llmService.generateTestReport(testCases, keyPoints, {
       model: 'qwen2.5-32b',
-      temperature: 0.0
+      temperature: 0.0,
     });
     console.log('测试报告:', testReport);
     console.log('');
 
     // 示例5: 流式输出
     console.log('🌊 示例5: 流式输出');
-    await llmService.callLLMStream('请写一个简单的测试用例', (chunk) => {
-      if (chunk.type === 'chunk') {
-        process.stdout.write(chunk.content);
-      } else if (chunk.type === 'complete') {
-        console.log('\n✅ 流式输出完成');
-      } else if (chunk.type === 'error') {
-        console.error('❌ 流式输出错误:', chunk.error);
-      }
-    }, {
+    await llmService.callLLM('请写一个简单的测试用例', {
       model: 'qwen2.5-32b',
-      temperature: 0.0
+      temperature: 0.0,
+      onChunk: (chunk) => {
+        if (chunk.type === 'chunk') {
+          process.stdout.write(chunk.content);
+        } else if (chunk.type === 'complete') {
+          console.log('\n✅ 流式输出完成');
+        } else if (chunk.type === 'error') {
+          console.error('❌ 流式输出错误:', chunk.error);
+        }
+      }
     });
   } catch (error) {
     console.error('❌ 示例执行失败:', error.message);

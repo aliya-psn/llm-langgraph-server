@@ -184,15 +184,6 @@ router.post('/openapi-chat', async (req, res) => {
  *                     openapi:
  *                       type: string
  *                       description: OpenAPI服务地址
- *             examples:
- *               health:
- *                 summary: 健康检查示例
- *                 value:
- *                   status: "ok"
- *                   timestamp: "2024-01-01T12:00:00Z"
- *                   services:
- *                     langchain: "http://localhost:8000/open-api/langchain-chat/chat/chat"
- *                     openapi: "http://localhost:8000/open-api/oneapi/v1/chat/completions"
  */
 /**
  * 健康检查

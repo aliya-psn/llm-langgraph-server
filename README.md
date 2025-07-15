@@ -99,7 +99,6 @@ npm start
 ```
 
 服务启动后，访问：
-- 前端界面: http://localhost:3000
 - API文档: http://localhost:3000/api-docs
 - 健康检查: http://localhost:3000/health
 - WebSocket: ws://localhost:3001
@@ -321,7 +320,7 @@ llm-langgraph-service/
 
 ```bash
 # 使用启动脚本（推荐）
-npm run setup
+node setup.js
 
 # 或手动启动
 npm install
@@ -392,7 +391,6 @@ npm run dev
 ```
 
 **访问地址：**
-- 🏠 前端界面: http://localhost:3000
 - 📖 API文档: http://localhost:3000/api-docs
 - 🔍 健康检查: http://localhost:3000/health
 - 🔌 WebSocket: ws://localhost:3001 
