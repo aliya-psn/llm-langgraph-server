@@ -206,6 +206,61 @@
         .ws-disconnected {
             background: #dc3545;
         }
+        .flex-row {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+        .input-panel {
+            flex: 1 1 350px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 24px 20px 20px 20px;
+            margin-bottom: 0;
+            min-width: 320px;
+            box-sizing: border-box;
+        }
+        .input-label {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+            text-align: left;
+        }
+        .input-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .input-row textarea {
+            flex: 1;
+            min-height: 90px;
+            font-size: 1em;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .input-row input[type="file"] {
+            display: none;
+        }
+        .mini-btn {
+            padding: 7px 16px;
+            font-size: 0.95em;
+            border-radius: 18px;
+            margin-left: 0;
+            margin-top: 0;
+            height: 36px;
+            white-space: nowrap;
+        }
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 0.95em;
+        }
+        @media (max-width: 900px) {
+            .flex-row { flex-direction: column; gap: 0; }
+            .input-panel { margin-bottom: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -215,10 +270,26 @@
         </div>
 
         <div class="content">
-            <div class="upload-section">
-                <h2>📄 输入需求文本</h2>
-                <textarea id="textInput" rows="6" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:1em;"></textarea>
-                <button class="upload-btn" style="margin-top:15px;" onclick="runLanggraphWorkflow()">生成测试用例</button>
+            <div class="flex-row">
+                <div class="input-panel">
+                    <label class="input-label" for="textInput">📄 输入需求文本</label>
+                    <div class="input-row">
+                        <textarea id="textInput" rows="6"></textarea>
+                        <button class="upload-btn mini-btn" onclick="runLanggraphWorkflow()">生成测试用例</button>
+                    </div>
+                </div>
+                <div class="input-panel">
+                    <label class="input-label" for="fileInput">📁 上传PDF文档</label>
+                    <div class="input-row">
+                        <input type="file" id="fileInput" accept=".pdf">
+                        <button class="upload-btn mini-btn" onclick="document.getElementById('fileInput').click()">选择PDF文件</button>
+                        <button id="startBtn" class="upload-btn mini-btn" style="display: none;">开始生成</button>
+                    </div>
+                    <div id="fileInfo" class="file-info" style="display:none;">
+                        <span id="fileName"></span>
+                        <span id="fileSize"></span>
+                    </div>
+                </div>
             </div>
 
             <div id="progressSection" class="progress-section" style="display:none;">
